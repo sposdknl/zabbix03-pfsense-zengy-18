@@ -1,0 +1,31 @@
+# Vagrantfile – pfSense s přístupem přes localhost a LAN pro Zabbix
+
+IMAGE_NAME = "cs-c4300/pfsense"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = IMAGE_NAME
+  config.vm.guest = :freebsd
+  config.ssh.shell = "sh"
+  config.ssh.insert_key = false 
+
+  # Port forwarding pro Web GUI – WAN → localhost
+  config.vm.network :forwarded_port, guest: 443, host: 8888, host_ip: "127.0.0.1"
+
+  # WAN – NAT, aby Web GUI šlo z Windows hosta
+  config.vm.network "public_network",
+    bridge: nil,
+    auto_config: true
+
+  # LAN – internal network pro Zabbix
+  config.vm.network "private_network",
+    virtualbox__intnet: "intnet",
+    ip: "192.168.1.1",
+    auto_config: true
+
+  # VirtualBox nastavení
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "pfsense-box"
+    vb.memory = 1024
+    vb.cpus = 1
+  end
+end
